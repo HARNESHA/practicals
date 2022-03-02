@@ -1,0 +1,27 @@
+version: '3.8'
+services:
+  db:
+    container_name: db
+    image: mysql
+    environment:
+        MYSQL_ROOT_PASSWORD: Simform@123
+        MYSQL_DATABASE: test
+        MYSQL_USER: test_user
+        MYSQL_PASSWORD: Simform@123
+    ports:
+      - "9906:3306"
+    networks:
+      net2:
+        ipv4_address: "172.21.0.2"
+    volumes:
+      - vol_db:/var/lib/mysql
+networks:
+  net2:
+    driver: bridge
+    name: mysql-network
+    ipam:
+      config:
+        - subnet: "172.21.0.0/24"
+          gateway: "172.21.0.1"
+volumes:
+  vol_db:
