@@ -1,0 +1,12 @@
+version: '3.7'
+
+services:
+  node_app:
+    build: .
+    container_name: node_application
+    ports:
+      - "5000:3000"
+    volumes:
+      - ./node_app_log:/app/logs
+    environment:
+      ENV_NODE : production
