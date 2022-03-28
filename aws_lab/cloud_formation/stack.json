@@ -1,46 +1,54 @@
 {
-"AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "",
-    "Metadata": {
-
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "simple vpc creation using cloud formation",
+  "Metadata": {},
+  "Parameters": {},
+  "Mappings": {},
+  "Conditions": {},
+  "Resources": {
+    "jayvpc": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "10.0.0.0/20",
+        "Tags": [
+          "jayvpc"
+        ]
+      }
     },
-    "Parameters": {
-    
+    "jayigw": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {
+        "Tags": [
+          "jayigw"
+        ]
+      }
     },
-    "Mappings": {
-
-    },
-    "Conditions": {
-
-    },
-    "Resources": {
-        
-        "jay-vpc": {
-          "Type": "AWS::EC2::VPC",
-          "Properties": {
-            "CidrBlock": "10.0.0.0/20",
-            "Tags": ["jay-vpc"]
-          }
-        },
-        
-        "jay-igw": {
-          "Type": "AWS::EC2::InternetGateway",
-          "Properties": {
-            "Tags": ["jay-igw"]
-          }
-        },
-        "AttachGateway": {
-          "Type": "AWS::EC2::VPCGatewayAttachment",
-          "Properties": {
-            "VpcId": "jay-vpc",
-            "InternetGatewayId": { "Ref": "igwName" }
-          }
+    "AttachGateway": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": "jayigw",
+        "InternetGatewayId": {
+          "Ref": "igwName"
         }
-        
-        
-
+      }
     },
-    "Outputs": {
-
+    "jayvpcroute": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": "jayvpc",
+        "Tags": [
+          "jayvpcroute"
+        ]
+      }
+    },
+    "introute": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": "jayvpcroute",
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": "jayigw"
+      }
     }
+  },
+  "Outputs": {}
 }

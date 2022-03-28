@@ -1,0 +1,82 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "simple cloud formation for vpc creation",
+    "Metadata": {},
+    "Parameters": {},
+    "Mappings": {},
+    "Conditions": {},
+    "Resources": {
+        "jayvpc": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": "10.0.0.0/20",
+                "Tags": [
+                    "jayvpc"
+                ]
+            }
+        },
+        "jayigw": {
+            "Type": "AWS::EC2::InternetGateway",
+            "Properties": {
+                "Tags": [
+                    "jayigw"
+                ]
+            }
+        },
+        "AttachGateway": {
+            "Type": "AWS::EC2::VPCGatewayAttachment",
+            "Properties": {
+                "VpcId": "jayvpc",
+                "InternetGatewayId": {
+                    "Ref": "jayigw"
+                }
+            }
+        },
+        "jayvpcroute": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "jayvpc"
+                },
+                "Tags": [
+                    "jayvpcroute"
+                ]
+            }
+        },
+        "internetroute": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "jayvpcroute"
+                },
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "GatewayId": {
+                    "Ref": "jayigw"
+                }
+            }
+        },
+        "jaysubnet": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": "eu-east-1",
+                "VpcId": {
+                    "Ref": "jayvpc"
+                },
+                "CidrBlock": "10.0.0.0/23",
+                "Tags": [
+                    "jaysubnet"
+                ]
+            }
+        },
+        "routeTableAssocName": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "jaysubnet"
+                },
+                "RouteTableId": "jayvpcroute"
+            }
+        }
+    },
+    "Outputs": {}
+}
