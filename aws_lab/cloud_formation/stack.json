@@ -1,0 +1,46 @@
+{
+"AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "",
+    "Metadata": {
+
+    },
+    "Parameters": {
+    
+    },
+    "Mappings": {
+
+    },
+    "Conditions": {
+
+    },
+    "Resources": {
+        
+        "jay-vpc": {
+          "Type": "AWS::EC2::VPC",
+          "Properties": {
+            "CidrBlock": "10.0.0.0/20",
+            "Tags": ["jay-vpc"]
+          }
+        },
+        
+        "jay-igw": {
+          "Type": "AWS::EC2::InternetGateway",
+          "Properties": {
+            "Tags": ["jay-igw"]
+          }
+        },
+        "AttachGateway": {
+          "Type": "AWS::EC2::VPCGatewayAttachment",
+          "Properties": {
+            "VpcId": "jay-vpc",
+            "InternetGatewayId": { "Ref": "igwName" }
+          }
+        }
+        
+        
+
+    },
+    "Outputs": {
+
+    }
+}
