@@ -1,68 +1,76 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "",
+    "Description": "simple vpc creation using cloud formation",
     "Metadata": {},
     "Parameters": {},
     "Mappings": {},
     "Conditions": {},
     "Resources": {
-        "jayvpc": {
+        "Jayvpc": {
             "Type": "AWS::EC2::VPC",
             "Properties": {
                 "CidrBlock": "10.0.0.0/20",
-                "Tags": [
-                    "jayvpc"
-                ]
+                "Tags": []
             }
         },
-        "jayigw": {
+        "Jayigw": {
             "Type": "AWS::EC2::InternetGateway",
             "Properties": {
-                "Tags": [
-                    "jayigw"
-                ]
+                "Tags": []
             }
         },
         "AttachGateway": {
             "Type": "AWS::EC2::VPCGatewayAttachment",
             "Properties": {
                 "VpcId": {
-                    "Ref": "jayvpc"
+                    "Ref": "Jayvpc"
                 },
                 "InternetGatewayId": {
-                    "Ref": "jayigw"
+                    "Ref": "Jayigw"
                 }
             }
         },
-        "jayvpcroute": {
+        "JayRouteTable": {
             "Type": "AWS::EC2::RouteTable",
             "Properties": {
                 "VpcId": {
-                    "Ref": "jayvpc"
+                    "Ref": "Jayvpc"
                 },
-                "Tags": [
-                    "jayvpc"
-                ]
+                "Tags": []
             }
         },
-        "jaysub": {
+        "Introute": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "JayRouteTable"
+                },
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "GatewayId": {
+                    "Ref": "Jayigw"
+                }
+            }
+        },
+        "Jaysubnet": {
             "Type": "AWS::EC2::Subnet",
             "Properties": {
-                "AvailabilityZone": "useast1a",
+                "AvailabilityZone": "us-east-1a",
                 "VpcId": {
-                    "Ref": "jayvpc"
+                    "Ref": "Jayvpc"
                 },
-                "CidrBlock": "10.0.0.0/22",
-                "Tags": [
-                    "jaysub"
-                ]
+                "CidrBlock": "10.0.0.0/23",
+                "Tags": []
             }
         },
         "routeTableAssocName": {
             "Type": "AWS::EC2::SubnetRouteTableAssociation",
             "Properties": {
-                "SubnetId": "jaysub",
-                "RouteTableId": "routeTableAssocName"
+                "SubnetId": {
+                    "Ref": "Jaysubnet"
+                },
+                "RouteTableId": {
+                    "Ref": "JayRouteTable"
+                }
             }
         }
     },
