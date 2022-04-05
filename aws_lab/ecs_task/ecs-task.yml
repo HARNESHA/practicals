@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "simple ecs creation templete"
+Metadata: {}
+
+Parameters: {}
+
+Mappings: {}
+
+Conditions: {}
+
+Resources:
+  #vpc creation
+  ecsvpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 192.168.0.0/24
+      EnableDnsSupport: true
+      Tags:
+        - Key: name
+          Value: ecsvpc
+  #creatiob of internet gateway
+  ecsigw:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: name
+          Value: ecsigw
+  #attach gateway
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: ecsvpc
+      InternetGatewayId:
+        Ref: ecsigw
+  #creat publicsubnet 1
+  pubsub1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-eat-1a
+      VpcId:
+        Ref: ecsvpc
+      CidrBlock: "192.168.0.0/28"
+      Tags:
+        - Key: name
+          Value: pubsub1
+  #create public subnet 2
+  pubsub2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-eat-1b
+      VpcId:
+        Ref: ecsvpc
+      CidrBlock: "192.168.0.16/28"
+      Tags:
+        - Key: name
+          Value: pubsub2
+  pubrtb:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        ref: ecsvpc
+      Tags:
+        - Key: keyname
+          Value: value
+Outputs:

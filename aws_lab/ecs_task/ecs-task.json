@@ -1,0 +1,143 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "simple ecs creation cloud formation",
+    "Metadata": {},
+    "Parameters": {},
+    "Mappings": {},
+    "Conditions": {},
+    "Resources": {
+        "ecsvpc": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": "192.168.0.0/24",
+                "Tags": []
+            }
+        },
+        "ecsigw": {
+            "Type": "AWS::EC2::InternetGateway",
+            "Properties": {
+                "Tags": []
+            }
+        },
+        "AttachGateway": {
+            "Type": "AWS::EC2::VPCGatewayAttachment",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "ecsvpc"
+                },
+                "InternetGatewayId": {
+                    "Ref": "ecsigw"
+                }
+            }
+        },
+        "ecssubnet1": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": "us-east-1a",
+                "VpcId": {
+                    "Ref": "ecsvpc"
+                },
+                "CidrBlock": "192.168.0.0/28",
+                "Tags": []
+            }
+        },
+        "ecssubnet2": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": "us-east-1b",
+                "VpcId": {
+                    "Ref": "ecsvpc"
+                },
+                "CidrBlock": "192.168.0.16/28",
+                "Tags": []
+            }
+        },
+        "publicRTB": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "ecsvpc"
+                },
+                "Tags": []
+            }
+        },
+        "pubsub1associate": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "ecssubnet1"
+                },
+                "RouteTableId": {
+                    "Ref": "publicRTB"
+                }
+            }
+        },
+        "pubsub2associate": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "ecssubnet2"
+                },
+                "RouteTableId": {
+                    "Ref": "publicRTB"
+                }
+            }
+        },
+        "ecsalbsg": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "sg for lb",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "80",
+                        "ToPort": "80",
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "ecsvpc"
+                },
+                "Tags": []
+            }
+        },
+        "ecssg": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "ecssg",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "0",
+                        "ToPort": "65535",
+                        "SourceSecurityGroupId": {
+                            "Ref": "ecsalbsg"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "ecsvpc"
+                },
+                "Tags": []
+            }
+        },
+        "ecsalb": {
+            "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Properties": {
+                "Name": "ecsalb",
+                "SecurityGroups": {
+                    "Ref": "ecsalbsg"
+                },
+                "Subnets": [
+                    {
+                        "Ref": "ecssubnet1"
+                    },
+                    {
+                        "Ref": "ecssubnet2"
+                    }
+                ]
+            }
+        }
+    },
+    "Outputs": {}
+}
