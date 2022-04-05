@@ -1,0 +1,69 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: ""
+Metadata: {}
+Parameters: {}
+Mappings: {}
+Conditions: {}
+Resources:
+  ecsvpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 192.168.0.0/24
+      Tags: []
+  ecsigw:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags: []
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: ecsvpc
+      InternetGatewayId:
+        Ref: ecsigw
+  ecsigwRT:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: ecsvpc
+      Tags: []
+  internetnetroute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: ecsigwRT
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: ecsigw
+  ecspublicsubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1a
+      VpcId:
+        Ref: ecsvpc
+      CidrBlock: 192.168.0.0/28
+      Tags: []
+  ecspublicsubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1b
+      VpcId:
+        Ref: ecsvpc
+      CidrBlock: 192.168.0.16/28
+      Tags: []
+  subnet1associate:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: ecspublicsubnet1
+      RouteTableId:
+        Ref: ecsigwRT
+  subnet2associate:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: ecspublicsubnet2
+      RouteTableId:
+        Ref: ecsigwRT
+Outputs: {}
