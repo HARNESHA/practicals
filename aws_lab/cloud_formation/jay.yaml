@@ -1,0 +1,176 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: ""
+Metadata: {}
+
+Parameters: {}
+
+Mappings: {}
+
+Conditions: {}
+
+Resources:
+  #create vpc
+  myVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: "true"
+      EnableDnsHostnames: "true"
+      Tags:
+        - Key: Name
+          Value: myvpc
+
+  #create igw
+  igwvpc:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: name
+          Value: igw-vpc
+
+  #attach igw
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: myVPC
+      InternetGatewayId:
+        Ref: igwvpc
+
+  #create pub subnet1
+  pubsubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1a
+      VpcId:
+        Ref: myVPC
+      CidrBlock: 10.0.1.0/24
+
+  #create pub subnet2
+  pubsubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1b
+      VpcId:
+        Ref: myVPC
+      CidrBlock: 10.0.2.0/24
+
+  #create route table
+  pubrtb:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: myVPC
+      Tags:
+        - Key: Name
+          Value: pubrtb
+
+  #add igw route to route tabler
+  pubroute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: pubrtb
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: igwvpc
+
+  #add public subnet 1 to rtb
+  pubassoc1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: pubsubnet1
+      RouteTableId:
+        Ref: pubrtb
+
+  #add public subnet 2 to rtb
+  pubassoc2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: pubsubnet2
+      RouteTableId:
+        Ref: pubrtb
+
+  #create sceurity group for lb
+  albsg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: albsg
+      GroupDescription: sg for lb
+      VpcId:
+        Ref: myVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: "80"
+          ToPort: "80"
+          CidrIp: "0.0.0.0/0"
+      Tags:
+        - Key: Name
+          Value: Albsg
+
+  #create sg for ECS
+  ecssg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: ecssg
+      GroupDescription: sg for ecs
+      VpcId:
+        Ref: myVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: "0"
+          ToPort: "65535"
+          SourceSecurityGroupId:
+            Ref: albsg
+      Tags:
+        - Key: Name
+          Value: ecssg
+
+  #create load balancer
+  myalb:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: myalb
+      SecurityGroups:
+        Ref: albsg
+      Subnets:
+        - Ref: pubsubnet1
+        - Ref: pubsubnet2
+
+  ALBListener:
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
+    Properties:
+      DefaultActions:
+        #- RedirectConfig:
+        #Host: '#{host}'
+        #Path: '/#{path}'
+        #Port: '80'
+        #Protocol: HTTP
+        #StatusCode: HTTP_301
+        - Type: forward
+          TargetGroupArn:
+            Ref: ALBTargetGroup
+      LoadBalancerArn:
+        - Ref: myalb
+      Port: 80
+      Protocol: HTTP
+
+  #create target group
+  ALBTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: /
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Matcher:
+        HttpCode: 200,302
+      Name: MyWebServers
+      Port: 80
+      Protocol: HTTP
+      TargetType: instance
+      UnhealthyThresholdCount: 5
+      VpcId:
+        Ref: myVPC
