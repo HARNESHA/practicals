@@ -1,0 +1,35 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "simple ecs cloud formation template",
+    "Metadata": {},
+    "Parameters": {},
+    "Mappings": {},
+    "Conditions": {},
+    "Resources": {
+        "ecsvpc": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": "192.168.0.0/24",
+                "Tags": []
+            }
+        },
+        "ecsigw": {
+            "Type": "AWS::EC2::InternetGateway",
+            "Properties": {
+                "Tags": []
+            }
+        },
+        "AttachGateway": {
+            "Type": "AWS::EC2::VPCGatewayAttachment",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "ecsvpc"
+                },
+                "InternetGatewayId": {
+                    "Ref": "ecsigw"
+                }
+            }
+        }
+    },
+    "Outputs": {}
+}
